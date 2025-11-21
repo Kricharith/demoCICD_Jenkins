@@ -1,0 +1,48 @@
+.control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-gray-4);
+  background-color: var(--mantine-color-white);
+  cursor: pointer;
+  transition: all 150ms ease;
+  width: 140px;
+}
+
+.control:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+.control[data-expanded] {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.control[data-expanded] .icon {
+  transform: rotate(180deg);
+}
+
+.flag {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  transition: transform 150ms ease;
+}
+
+/* Dark theme support */
+[data-mantine-color-scheme='dark'] .control {
+  background-color: var(--mantine-color-dark-6);
+  border-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme='dark'] .control:hover {
+  background-color: var(--mantine-color-dark-5);
+}
+
+[data-mantine-color-scheme='dark'] .control[data-expanded] {
+  border-color: var(--mantine-color-blue-6);
+}

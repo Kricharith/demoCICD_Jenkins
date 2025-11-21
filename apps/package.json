@@ -1,0 +1,22 @@
+{
+  "name": "apps",
+  "packageManager": "yarn@4.9.1",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/**"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "turbo format",
+    "clean": "turbo clean"
+  },
+  "devDependencies": {
+    "@storybook/nextjs": "8.5.0",
+    "turbo": "^2.5.3"
+  }
+}

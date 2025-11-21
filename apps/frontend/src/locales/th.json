@@ -1,0 +1,50 @@
+{
+  "common": {
+    "welcome": "ยินดีต้อนรับ",
+    "home": "หน้าแรก",
+    "about": "เกี่ยวกับ",
+    "contact": "ติดต่อ",
+    "language": "ภาษา",
+    "english": "อังกฤษ",
+    "thai": "ไทย",
+    "loading": "กำลังโหลด...",
+    "error": "ข้อผิดพลาด",
+    "success": "สำเร็จ",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน",
+    "save": "บันทึก",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
+    "search": "ค้นหา",
+    "filter": "กรอง",
+    "sort": "เรียง",
+    "next": "ถัดไป",
+    "previous": "ก่อนหน้า",
+    "submit": "ส่ง",
+    "create": "สร้าง"
+  },
+  "navigation": {
+    "menu": "เมนู",
+    "dashboard": "แดชบอร์ด",
+    "profile": "โปรไฟล์",
+    "settings": "การตั้งค่า",
+    "logout": "ออกจากระบบ"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "register": "สมัครสมาชิก",
+    "email": "อีเมล",
+    "password": "รหัสผ่าน",
+    "forgotPassword": "ลืมรหัสผ่าน?",
+    "rememberMe": "จดจำฉัน",
+    "loginSuccess": "เข้าสู่ระบบสำเร็จ",
+    "loginError": "เข้าสู่ระบบไม่สำเร็จ"
+  },
+  "pages": {
+    "title": "สมาร์ทแอสเซ็ต",
+    "description": "แอปพลิเคชันสมาร์ทแอสเซ็ตที่ช่วยให้คุณติดตามรายการสินของคุณ",
+    "navPage":{
+      "home": "หน้าแรก"
+    }
+  }
+}
