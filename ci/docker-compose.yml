@@ -1,0 +1,66 @@
+name: smart-asset-${CI_ENVIRONMENT_SLUG}
+
+services:
+  etcd:
+    image: bitnami/etcd:3.6.0
+    expose:
+      - 2379
+    volumes:
+      - etcd_data:/bitnami/etcd
+    environment:
+      - ETCD_ROOT_PASSWORD=${ETCD_ROOT_PASSWORD}
+      - ETCD_NAME=etcd
+      - ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
+      - ETCD_INITIAL_CLUSTER=etcd=http://etcd:2380
+  frontend:
+    image: ${CI_REGISTRY_IMAGE}/frontend:v${VERSION_NUMBER}
+    # expose:
+    #   - 3000
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=${FRONTEND_PORT:-3000}
+      - NEXT_PUBLIC_API_BASE_URL=${BACKEND_URL}
+      - NEXT_PUBLIC_BASE_PATH=${FRONTEND_BASE_PATH}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${FRONTEND_URL}
+      - API_BASE_URL=http://backend:3000
+    labels:
+      - "traefik.enable=true"
+  backend:
+    image: &backend_image ${CI_REGISTRY_IMAGE}/backend:v${VERSION_NUMBER}
+    # expose:
+    #   - 3000
+    ports:
+      - 3001:3000
+    environment: &backend_environment
+      - DATABASE_URL=${BACKEND_DATABASE_URL}
+      - PORT=${BACKEND_PORT:-3000}
+      - JWT_SECRET=${BACKEND_JWT_SECRET}
+      - JWT_EXPIRATION=${BACKEND_JWT_EXPIRATION}
+      - ETCD_URL=${ETCD_URL:-http://etcd:2379}
+      - ETCD_USER=root
+      - ETCD_PASSWORD=${ETCD_ROOT_PASSWORD}
+      - BACKEND_PATH_PREFIX=${BACKEND_PATH_PREFIX}
+      - BACKEND_ALLOWED_ORIGIN=${BACKEND_ALLOWED_ORIGIN}
+    labels:
+      - "traefik.enable=true"
+    depends_on:
+      backend-db-migrate:
+        condition: service_completed_successfully
+  backend-db-migrate:
+    image: *backend_image
+    environment: *backend_environment
+    command: npx prisma migrate deploy
+    working_dir: /app/apps/packages/database
+
+volumes:
+  etcd_data:
+
+networks:
+  default:
+    name: smart-asset-${CI_ENVIRONMENT_SLUG}
+    external: true
