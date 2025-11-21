@@ -5,11 +5,13 @@
 //   - MAJOR_VERSION
 //   - MINOR_VERSION
 //   - APP_NAME               (เช่น smart-asset)
-//   - TARGET_BASE_DIR        (เช่น /srv/docker)
+//   - TARGET_BASE_DIR        (เช่น /opt/smart-asset-jenkins หรือ /srv/docker)
 //   - BACKEND_ALLOWED_ORIGIN (เช่น https://app-smart.kridcharid.com,http://localhost:3000)
 //   - BACKEND_JWT_EXPIRATION (เช่น 168h)
 //   - BACKEND_URL            (เช่น https://api-smart.kridcharid.com)
 //   - FRONTEND_BASE_PATH     (เช่น https://app-smart.kridcharid.com)
+//   - BACKEND_PATH_PREFIX    (เช่น /api หรือ /)
+//   - NEXTAUTH_SECRET        (string ยาว ๆ สำหรับ NextAuth)
 //
 // Credentials (Secret text):
 //   - BACKEND_DATABASE_URL
@@ -23,12 +25,12 @@ pipeline {
         choice(
             name: 'DEPLOY_ENV',
             choices: ['dev', 'uat', 'prod'],
-            description: 'เลือก environment ที่ต้องการ deploy (มีผลกับ TARGET_DIR)'
+            description: 'Select the environment to deploy to (affects TARGET_DIR and CI_ENVIRONMENT_SLUG).'
         )
         booleanParam(
             name: 'RUN_DEPLOY',
             defaultValue: true,
-            description: 'ถ้า false จะ build images อย่างเดียว ไม่ deploy'
+            description: 'If false, only build Docker images without deploying.'
         )
     }
 
@@ -39,15 +41,14 @@ pipeline {
                 script {
 
                     if (!env.MAJOR_VERSION || !env.MINOR_VERSION) {
-                        error "MAJOR_VERSION / MINOR_VERSION ยังไม่ได้ตั้งใน Jenkins environment"
+                        error "MAJOR_VERSION / MINOR_VERSION Not found in Jenkins environment"
                     }
                     if (!env.APP_NAME) {
-                        error "APP_NAME ยังไม่ได้ตั้งใน Jenkins environment"
+                        error "APP_NAME Not found in Jenkins environment"
                     }
                     if (!env.TARGET_BASE_DIR) {
-                        error "TARGET_BASE_DIR ยังไม่ได้ตั้งใน Jenkins environment"
+                        error "TARGET_BASE_DIR Not found in Jenkins environment"
                     }
-
 
                     env.VERSION_NUMBER = "${env.MAJOR_VERSION}.${env.MINOR_VERSION}.${env.BUILD_NUMBER}"
                     env.BUILD_TAG      = "build-${env.BUILD_NUMBER}"
@@ -55,7 +56,7 @@ pipeline {
                     def branch = env.BRANCH_NAME ?: 'unknown'
                     def slug   = branch.toLowerCase()
                                        .replaceAll('[^a-z0-9]+', '-')
-                                       .replaceAll(/^-+|-+$/, '')     
+                                       .replaceAll(/^-+|-+$/, '')
                     env.BRANCH_SLUG = slug
 
                     env.IMAGE_FRONTEND = "${env.APP_NAME}-frontend"
@@ -110,6 +111,8 @@ pipeline {
                 script {
                     def envSlug = params.DEPLOY_ENV.toLowerCase()
 
+                    env.CI_ENVIRONMENT_SLUG = envSlug
+
                     env.TARGET_DIR = "${env.TARGET_BASE_DIR}/${env.APP_NAME}-${envSlug}"
 
                     echo "Deploying to environment: ${envSlug}"
@@ -125,18 +128,18 @@ pipeline {
                         sh '''
                             set -e
 
+                            NET_NAME="smart-asset-net"
+
+                            if ! docker network inspect "$NET_NAME" >/dev/null 2>&1; then
+                              echo "[Deploy] Creating docker network $NET_NAME ..."
+                              docker network create "$NET_NAME"
+                            else
+                              echo "[Deploy] Docker network $NET_NAME already exists"
+                            fi
+
                             mkdir -p "$TARGET_DIR"
 
                             echo "[Deploy] Generating docker-compose.yml from ci/docker-compose.yml ..."
-
-                            # ณ จุดนี้ env จะมี:
-                            # - BACKEND_ALLOWED_ORIGIN, BACKEND_JWT_EXPIRATION,
-                            #   BACKEND_URL, FRONTEND_BASE_PATH       (จาก Jenkins env ปกติ)
-                            # - BACKEND_DATABASE_URL, BACKEND_JWT_SECRET,
-                            #   ETCD_ROOT_PASSWORD                    (จาก Credentials)
-                            #
-                            # docker compose จะอ่าน ${...} ใน ci/docker-compose.yml จาก env เหล่านี้
-
                             docker compose -f ci/docker-compose.yml config --no-path-resolution > "$TARGET_DIR/docker-compose.yml"
 
                             cd "$TARGET_DIR"
